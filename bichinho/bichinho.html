@@ -1,0 +1,28 @@
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Meu Pet Virtual</title>
+        <style>
+            body {
+                background-image: url('bg.jpg'); 
+                background-size: cover;  
+                background-attachment: fixed; 
+                background-position: center; 
+                margin: 0; 
+                height: 100vh; 
+            }
+
+            #b, #btn {
+                position: relative; 
+                z-index: 1; 
+            }
+        </style>
+    </head>
+
+    <body>
+        <img id="b" src="b_n.png" style="width: 620px; margin-bottom: 1rem;" />
+        <img id="btn" src="btn.png" style="width: 428px; cursor: pointer;" onclick="alimentar()" />
+    </body>
+
+    <script src="bichinho.js"></script>
+</html>
