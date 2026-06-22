@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ex05 - Lista de Convidados VIP</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f2f5;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 40px 16px;
+    }
+
+    .card {
+      background-color: #ffffff;
+      padding: 32px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 520px;
+    }
+
+    h1 {
+      font-size: 1.4rem;
+      margin-bottom: 4px;
+      color: #1a1a2e;
+      text-align: center;
+    }
+
+    .subtitulo {
+      text-align: center;
+      font-size: 0.8rem;
+      color: #888;
+      margin-bottom: 24px;
+    }
+
+    /* Área de adicionar convidado */
+    .area-adicionar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .area-adicionar input {
+      flex: 1;
+      padding: 10px 14px;
+      font-size: 0.95rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .area-adicionar input:focus {
+      border-color: #4a90d9;
+    }
+
+    .area-adicionar button {
+      padding: 10px 18px;
+      font-size: 0.9rem;
+      font-weight: bold;
+      background-color: #4a90d9;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background-color 0.2s;
+    }
+
+    .area-adicionar button:hover {
+      background-color: #357abd;
+    }
+
+    /* Contador */
+    .contagem {
+      font-size: 0.78rem;
+      color: #aaa;
+      margin-bottom: 12px;
+    }
+
+    /* Lista */
+    #listaConvidados {
+      list-style: none;
+    }
+
+    .item-convidado {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid #f0f0f0;
+      gap: 10px;
+    }
+
+    .item-convidado:last-child {
+      border-bottom: none;
+    }
+
+    .nome-convidado {
+      font-size: 0.95rem;
+      color: #1a1a2e;
+      flex: 1;
+    }
+
+    /* Classe que risca o nome quando o convidado chegou */
+    .nome-convidado.chegou {
+      text-decoration: line-through;
+      color: #aaa;
+    }
+
+    .botoes-item {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .botoes-item button {
+      padding: 5px 11px;
+      font-size: 0.75rem;
+      font-weight: bold;
+      border-radius: 4px;
+      border: 1px solid;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .botoes-item button:hover {
+      opacity: 0.8;
+    }
+
+    .btn-concluir {
+      background-color: #d4edda;
+      color: #155724;
+      border-color: #c3e6cb !important;
+    }
+
+    .btn-editar {
+      background-color: #fff3cd;
+      color: #856404;
+      border-color: #ffeeba !important;
+    }
+
+    .btn-excluir {
+      background-color: #f8d7da;
+      color: #721c24;
+      border-color: #f5c6cb !important;
+    }
+
+    /* Mensagem quando a lista está vazia */
+    #mensagemVazia {
+      text-align: center;
+      color: #bbb;
+      font-size: 0.88rem;
+      padding: 24px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h1>👥 Convidados VIP</h1>
+    <p class="subtitulo">Infinity Bank — Evento de Inauguração</p>
+
+    <div class="area-adicionar">
+      <input
+        type="text"
+        id="campoNome"
+        placeholder="Nome do convidado..."
+        onkeydown="if (event.key === 'Enter') adicionarConvidado()"
+      >
+      <button onclick="adicionarConvidado()">+ Adicionar</button>
+    </div>
+
+    <div class="contagem" id="contagem">0 convidado(s) na lista</div>
+
+    <ul id="listaConvidados"></ul>
+
+    <p id="mensagemVazia">Nenhum convidado adicionado ainda.</p>
+  </div>
+
+  <script>
+    // Array que guarda os objetos de cada convidado
+    let convidados = [];
+
+    // Cada convidado recebe um ID único para facilitar operações de editar/excluir
+    let proximoId = 1;
+
+    function adicionarConvidado() {
+      const campo = document.getElementById('campoNome');
+      const nome = campo.value.trim(); // .trim() evita entradas com só espaços
+
+      if (!nome) return; // não adiciona se o campo estiver vazio
+
+      // Cria um objeto para representar o convidado
+      const novoConvidado = {
+        id: proximoId++,
+        nome: nome,
+        chegou: false // indica se o convidado já chegou ao evento
+      };
+
+      convidados.push(novoConvidado);
+      campo.value = '';
+      campo.focus();
+
+      renderizarLista();
+    }
+
+    function concluirConvidado(id) {
+      // Encontra o convidado pelo ID e alterna o estado de chegada
+      const convidado = convidados.find(c => c.id === id);
+      if (convidado) {
+        convidado.chegou = !convidado.chegou;
+        renderizarLista();
+      }
+    }
+
+    function editarConvidado(id) {
+      const convidado = convidados.find(c => c.id === id);
+      if (!convidado) return;
+
+      // Usa prompt() para receber o novo nome, conforme sugerido no exercício
+      const novoNome = prompt('Editar nome do convidado:', convidado.nome);
+
+      if (novoNome && novoNome.trim()) {
+        convidado.nome = novoNome.trim();
+        renderizarLista();
+      }
+    }
+
+    function excluirConvidado(id) {
+      // Recria o array sem o convidado de ID correspondente
+      convidados = convidados.filter(c => c.id !== id);
+      renderizarLista();
+    }
+
+    function renderizarLista() {
+      const ul = document.getElementById('listaConvidados');
+      const mensagemVazia = document.getElementById('mensagemVazia');
+      const contagem = document.getElementById('contagem');
+
+      // Limpa a lista antes de redesenhar
+      ul.innerHTML = '';
+
+      // Atualiza o contador
+      contagem.textContent = `${convidados.length} convidado(s) na lista`;
+
+      if (convidados.length === 0) {
+        mensagemVazia.style.display = 'block';
+        return;
+      }
+
+      mensagemVazia.style.display = 'none';
+
+      // Cria um <li> para cada convidado do array
+      convidados.forEach(convidado => {
+        const li = document.createElement('li');
+        li.className = 'item-convidado';
+
+        // Monta o conteúdo do item
+        li.innerHTML = `
+          <span class="nome-convidado ${convidado.chegou ? 'chegou' : ''}">
+            ${convidado.nome}
+          </span>
+          <div class="botoes-item">
+            <button class="btn-concluir" onclick="concluirConvidado(${convidado.id})">
+              ${convidado.chegou ? '↩ Desfazer' : '✓ Chegou'}
+            </button>
+            <button class="btn-editar"  onclick="editarConvidado(${convidado.id})">✎ Editar</button>
+            <button class="btn-excluir" onclick="excluirConvidado(${convidado.id})">✕ Excluir</button>
+          </div>
+        `;
+
+        ul.appendChild(li);
+      });
+    }
+  </script>
+
+</body>
+</html>

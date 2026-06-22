@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ex03 - Média Escolar</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f2f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .card {
+      background-color: #ffffff;
+      padding: 32px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 440px;
+    }
+
+    h1 {
+      font-size: 1.4rem;
+      margin-bottom: 24px;
+      color: #1a1a2e;
+      text-align: center;
+    }
+
+    label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: bold;
+      color: #444;
+      margin-bottom: 6px;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px 14px;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input:focus {
+      border-color: #4a90d9;
+    }
+
+    .campo {
+      margin-bottom: 16px;
+    }
+
+    .linha-notas {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .linha-notas .campo {
+      margin-bottom: 0;
+    }
+
+    button {
+      width: 100%;
+      padding: 11px;
+      font-size: 1rem;
+      font-weight: bold;
+      background-color: #4a90d9;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    button:hover {
+      background-color: #357abd;
+    }
+
+    #resultado {
+      margin-top: 20px;
+      padding: 16px;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      display: none;
+      line-height: 1.6;
+    }
+
+    /* Aprovado = azul */
+    #resultado.aprovado {
+      background-color: #d0e8f8;
+      color: #0c4f82;
+      border: 1px solid #a3c8e9;
+    }
+
+    /* Exame = verde */
+    #resultado.exame {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    /* Reprovado = vermelho */
+    #resultado.reprovado {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    #resultado .titulo-resultado {
+      font-weight: bold;
+      font-size: 1.05rem;
+      margin-bottom: 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h1>🎓 Média Escolar</h1>
+
+    <div class="campo">
+      <label for="nomeAluno">Nome do Aluno</label>
+      <input type="text" id="nomeAluno" placeholder="Ex: Maria Souza">
+    </div>
+
+    <div class="linha-notas">
+      <div class="campo">
+        <label for="nota1">Nota 1</label>
+        <input type="number" id="nota1" placeholder="0.0" step="0.1" min="0" max="10">
+      </div>
+      <div class="campo">
+        <label for="nota2">Nota 2</label>
+        <input type="number" id="nota2" placeholder="0.0" step="0.1" min="0" max="10">
+      </div>
+      <div class="campo">
+        <label for="nota3">Nota 3</label>
+        <input type="number" id="nota3" placeholder="0.0" step="0.1" min="0" max="10">
+      </div>
+    </div>
+
+    <button onclick="calcularMedia()">Calcular Média</button>
+
+    <div id="resultado">
+      <div class="titulo-resultado" id="tituloResultado"></div>
+      <div id="textoResultado"></div>
+    </div>
+  </div>
+
+  <script>
+    function calcularMedia() {
+      // Lê e converte os inputs para Number
+      const nome = document.getElementById('nomeAluno').value.trim() || 'Aluno(a)';
+      const nota1 = Number(document.getElementById('nota1').value);
+      const nota2 = Number(document.getElementById('nota2').value);
+      const nota3 = Number(document.getElementById('nota3').value);
+
+      // Calcula a média aritmética simples
+      const media = (nota1 + nota2 + nota3) / 3;
+
+      const divResultado    = document.getElementById('resultado');
+      const tituloResultado = document.getElementById('tituloResultado');
+      const textoResultado  = document.getElementById('textoResultado');
+
+      divResultado.style.display = 'block';
+
+      // --- Condicionais para definir a situação ---
+
+      if (media >= 7.0) {
+        // Aprovado: média entre 7.0 e 10.0
+        divResultado.className = 'aprovado';
+        tituloResultado.textContent = `✓ ${nome} — Aprovado(a)`;
+        textoResultado.textContent  = `Média final: ${media.toFixed(2)}`;
+
+      } else if (media >= 4.0) {
+        // Exame: média entre 4.0 e 6.9
+        const pontosParaDez = 10 - media;
+        divResultado.className = 'exame';
+        tituloResultado.textContent = `⚠ ${nome} — Exame Final`;
+        textoResultado.textContent  = `Média final: ${media.toFixed(2)}. Faltam ${pontosParaDez.toFixed(2)} pontos para atingir 10.`;
+
+      } else {
+        // Reprovado: média abaixo de 4.0
+        divResultado.className = 'reprovado';
+        tituloResultado.textContent = `✗ ${nome} — Reprovado(a)`;
+        textoResultado.textContent  = `Média final: ${media.toFixed(2)}. Média inferior a 4.0.`;
+      }
+    }
+  </script>
+
+</body>
+</html>

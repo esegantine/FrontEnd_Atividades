@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ex02 - Conversor de Temperatura</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f2f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .card {
+      background-color: #ffffff;
+      padding: 32px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 420px;
+    }
+
+    h1 {
+      font-size: 1.4rem;
+      margin-bottom: 8px;
+      color: #1a1a2e;
+      text-align: center;
+    }
+
+    .subtitulo {
+      text-align: center;
+      font-size: 0.82rem;
+      color: #888;
+      margin-bottom: 28px;
+    }
+
+    .linha-conversao {
+      display: flex;
+      align-items: flex-end;
+      gap: 12px;
+    }
+
+    .campo {
+      flex: 1;
+    }
+
+    .seta {
+      font-size: 1.5rem;
+      color: #aaa;
+      padding-bottom: 8px;
+      flex-shrink: 0;
+    }
+
+    label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: bold;
+      color: #444;
+      margin-bottom: 6px;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px 14px;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input:focus {
+      border-color: #e8740c;
+    }
+
+    .info {
+      margin-top: 20px;
+      background-color: #fff8f0;
+      border: 1px solid #f5c07a;
+      border-radius: 6px;
+      padding: 14px;
+      font-size: 0.82rem;
+      color: #7a4f00;
+      line-height: 1.6;
+    }
+
+    .info strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h1>🌡️ Conversor de Temperatura</h1>
+    <p class="subtitulo">Digite em qualquer campo — o outro atualiza em tempo real</p>
+
+    <div class="linha-conversao">
+      <div class="campo">
+        <label for="celsius">Celsius (°C)</label>
+        <input
+          type="number"
+          id="celsius"
+          placeholder="Ex: 100"
+          step="0.1"
+          oninput="celsiusParaFahrenheit()"
+        >
+      </div>
+
+      <div class="seta">⇄</div>
+
+      <div class="campo">
+        <label for="fahrenheit">Fahrenheit (°F)</label>
+        <input
+          type="number"
+          id="fahrenheit"
+          placeholder="Ex: 212"
+          step="0.1"
+          oninput="fahrenheitParaCelsius()"
+        >
+      </div>
+    </div>
+
+    <div class="info">
+      <strong>📐 Fórmulas utilizadas:</strong>
+      °F = (°C × 9/5) + 32<br>
+      °C = (°F − 32) × 5/9
+    </div>
+  </div>
+
+  <script>
+    // Variável de controle para evitar loop infinito entre os dois inputs
+    let atualizando = false;
+
+    function celsiusParaFahrenheit() {
+      if (atualizando) return;
+      atualizando = true;
+
+      const valorCelsius = parseFloat(document.getElementById('celsius').value);
+      const campoFahrenheit = document.getElementById('fahrenheit');
+
+      if (isNaN(valorCelsius)) {
+        campoFahrenheit.value = '';
+      } else {
+        // Fórmula: F = (C * 9/5) + 32
+        const resultado = (valorCelsius * 9 / 5) + 32;
+        campoFahrenheit.value = resultado.toFixed(2);
+      }
+
+      atualizando = false;
+    }
+
+    function fahrenheitParaCelsius() {
+      if (atualizando) return;
+      atualizando = true;
+
+      const valorFahrenheit = parseFloat(document.getElementById('fahrenheit').value);
+      const campoCelsius = document.getElementById('celsius');
+
+      if (isNaN(valorFahrenheit)) {
+        campoCelsius.value = '';
+      } else {
+        // Fórmula: C = (F - 32) * 5/9
+        const resultado = (valorFahrenheit - 32) * 5 / 9;
+        campoCelsius.value = resultado.toFixed(2);
+      }
+
+      atualizando = false;
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ex06 - Crédito para Festas & Eventos</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f2f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 24px 16px;
+    }
+
+    .card {
+      background-color: #ffffff;
+      padding: 32px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 460px;
+    }
+
+    h1 {
+      font-size: 1.4rem;
+      margin-bottom: 4px;
+      color: #1a1a2e;
+      text-align: center;
+    }
+
+    .subtitulo {
+      text-align: center;
+      font-size: 0.8rem;
+      color: #888;
+      margin-bottom: 24px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: bold;
+      color: #444;
+      margin-bottom: 6px;
+    }
+
+    select,
+    input {
+      width: 100%;
+      padding: 10px 14px;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      outline: none;
+      background-color: white;
+      transition: border-color 0.2s;
+    }
+
+    select:focus,
+    input:focus {
+      border-color: #4a90d9;
+    }
+
+    .campo {
+      margin-bottom: 16px;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 4px;
+      padding: 11px;
+      font-size: 1rem;
+      font-weight: bold;
+      background-color: #1a1a2e;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    button:hover {
+      background-color: #2d2d4e;
+    }
+
+    /* Resultado */
+    #resultado {
+      display: none;
+      margin-top: 24px;
+      border-top: 1px solid #eee;
+      padding-top: 20px;
+    }
+
+    #resultado h2 {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #888;
+      margin-bottom: 14px;
+    }
+
+    .linha {
+      display: flex;
+      justify-content: space-between;
+      padding: 9px 0;
+      font-size: 0.9rem;
+      border-bottom: 1px dashed #f0f0f0;
+    }
+
+    .linha:last-child {
+      border-bottom: none;
+    }
+
+    .linha .desc {
+      color: #555;
+    }
+
+    .linha .val {
+      font-weight: bold;
+      color: #1a1a2e;
+    }
+
+    /* Linha de desconto */
+    .linha.desconto .val {
+      color: #28a745;
+    }
+
+    /* Linha do total final — destaque */
+    .linha.total {
+      margin-top: 6px;
+      border-top: 2px solid #eee;
+      padding-top: 12px;
+    }
+
+    .linha.total .desc {
+      font-weight: bold;
+      color: #1a1a2e;
+      font-size: 1rem;
+    }
+
+    .linha.total .val {
+      color: #4a90d9;
+      font-size: 1.15rem;
+    }
+
+    /* Badge de desconto */
+    .badge-desconto {
+      display: inline-block;
+      background-color: #d4edda;
+      color: #155724;
+      font-size: 0.72rem;
+      font-weight: bold;
+      padding: 2px 8px;
+      border-radius: 12px;
+      margin-left: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h1>🎉 Crédito para Festas & Eventos</h1>
+    <p class="subtitulo">Infinity Bank — Simule o custo do seu evento</p>
+
+    <div class="campo">
+      <label for="pacote">Pacote de Serviço</label>
+      <select id="pacote">
+        <option value="50">Standard — R$ 50,00 por pessoa</option>
+        <option value="80">Premium — R$ 80,00 por pessoa</option>
+        <option value="120">Infinity Deluxe — R$ 120,00 por pessoa</option>
+      </select>
+    </div>
+
+    <div class="campo">
+      <label for="quantidadePessoas">Quantidade de Convidados</label>
+      <input type="number" id="quantidadePessoas" placeholder="Ex: 80" min="1">
+    </div>
+
+    <button onclick="calcularOrcamento()">Calcular Orçamento</button>
+
+    <div id="resultado">
+      <h2>Detalhamento do Orçamento</h2>
+
+      <div class="linha">
+        <span class="desc" id="descCusto">Custo Bruto</span>
+        <span class="val" id="valCusto">—</span>
+      </div>
+
+      <div class="linha">
+        <span class="desc">Taxa de Serviço (10%)</span>
+        <span class="val" id="valTaxa">—</span>
+      </div>
+
+      <div class="linha desconto">
+        <span class="desc" id="descDesconto">
+          Desconto Fidelidade (5%)
+        </span>
+        <span class="val" id="valDesconto">—</span>
+      </div>
+
+      <div class="linha total">
+        <span class="desc">Total Final</span>
+        <span class="val" id="valTotal">—</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function calcularOrcamento() {
+      const precoPorPessoa  = Number(document.getElementById('pacote').value);
+      const qtdPessoas      = parseInt(document.getElementById('quantidadePessoas').value) || 0;
+
+      // 1. Custo base: preço do pacote × número de convidados
+      const custoBruto = precoPorPessoa * qtdPessoas;
+
+      // 2. Taxa de serviço: 10% sobre o custo bruto
+      const taxaServico = custoBruto * 0.10;
+
+      const subtotal = custoBruto + taxaServico;
+
+      // 3. Desconto fidelidade: 5% se mais de 100 convidados
+      let desconto = 0;
+      if (qtdPessoas > 100) {
+        desconto = subtotal * 0.05;
+      }
+
+      const totalFinal = subtotal - desconto;
+
+      // Exibe o bloco de resultado
+      document.getElementById('resultado').style.display = 'block';
+
+      // Preenche cada campo
+      document.getElementById('descCusto').innerHTML =
+        `Custo Bruto <small style="color:#aaa">(${qtdPessoas} × R$ ${precoPorPessoa},00)</small>`;
+
+      document.getElementById('valCusto').textContent    = `R$ ${custoBruto.toFixed(2)}`;
+      document.getElementById('valTaxa').textContent     = `R$ ${taxaServico.toFixed(2)}`;
+
+      // Desconto: mostra valor se aplicado, ou "Não aplicável"
+      const descDesconto = document.getElementById('descDesconto');
+      const valDesconto  = document.getElementById('valDesconto');
+
+      if (desconto > 0) {
+        descDesconto.innerHTML = 'Desconto Fidelidade (5%) <span class="badge-desconto">Aplicado!</span>';
+        valDesconto.textContent = `- R$ ${desconto.toFixed(2)}`;
+      } else {
+        descDesconto.textContent = 'Desconto Fidelidade (5%)';
+        valDesconto.style.color  = '#bbb';
+        valDesconto.textContent  = 'Não aplicável (mín. 101 pessoas)';
+      }
+
+      document.getElementById('valTotal').textContent = `R$ ${totalFinal.toFixed(2)}`;
+    }
+  </script>
+
+</body>
+</html>

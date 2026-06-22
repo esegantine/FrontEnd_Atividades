@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ex01 - Validador de CPF</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f2f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .card {
+      background-color: #ffffff;
+      padding: 32px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 400px;
+    }
+
+    h1 {
+      font-size: 1.4rem;
+      margin-bottom: 24px;
+      color: #1a1a2e;
+      text-align: center;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: bold;
+      color: #444;
+      margin-bottom: 6px;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px 14px;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input:focus {
+      border-color: #4a90d9;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 16px;
+      padding: 11px;
+      font-size: 1rem;
+      font-weight: bold;
+      background-color: #4a90d9;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    button:hover {
+      background-color: #357abd;
+    }
+
+    #resultado {
+      margin-top: 20px;
+      padding: 14px;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      font-weight: bold;
+      text-align: center;
+      display: none;
+    }
+
+    #resultado.valido {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    #resultado.invalido {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h1>⚡ Validador de CPF</h1>
+
+    <label for="campoCpf">Número do CPF</label>
+    <input
+      type="text"
+      id="campoCpf"
+      placeholder="000.000.000-00"
+      maxlength="14"
+      oninput="aplicarMascara(this)"
+    >
+
+    <button onclick="validarCPF()">Validar</button>
+
+    <div id="resultado"></div>
+  </div>
+
+  <script>
+    // Aplica a máscara 000.000.000-00 conforme o usuário digita
+    function aplicarMascara(campo) {
+      let valor = campo.value.replace(/\D/g, ''); // remove tudo que não é número
+      valor = valor.slice(0, 11);                 // limita a 11 dígitos
+
+      if (valor.length > 9) {
+        valor = valor.replace(/(\d{3})(\d{3})(\d{3})(\d{0,2})/, '$1.$2.$3-$4');
+      } else if (valor.length > 6) {
+        valor = valor.replace(/(\d{3})(\d{3})(\d{0,3})/, '$1.$2.$3');
+      } else if (valor.length > 3) {
+        valor = valor.replace(/(\d{3})(\d{0,3})/, '$1.$2');
+      }
+
+      campo.value = valor;
+    }
+
+    function validarCPF() {
+      const divResultado = document.getElementById('resultado');
+      const cpfBruto = document.getElementById('campoCpf').value;
+
+      // Remove a formatação para trabalhar só com os números
+      const cpf = cpfBruto.replace(/\D/g, '');
+
+      // Verifica se tem 11 dígitos e não é uma sequência repetida (ex: 111.111.111-11)
+      if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) {
+        exibirResultado('CPF Inválido! Verifique o número digitado.', false);
+        return;
+      }
+
+      // --- Cálculo do 1º dígito verificador ---
+      // Multiplica os 9 primeiros dígitos pelos pesos 10, 9, 8... 2
+      let soma = 0;
+      for (let i = 0; i < 9; i++) {
+        soma += parseInt(cpf[i]) * (10 - i);
+      }
+
+      let resto = (soma * 10) % 11;
+      if (resto === 10) resto = 0; // regra: se resto for 10, o dígito é 0
+
+      const primeiroDigito = resto;
+
+      // --- Cálculo do 2º dígito verificador ---
+      // Multiplica os 10 primeiros dígitos pelos pesos 11, 10, 9... 2
+      soma = 0;
+      for (let i = 0; i < 10; i++) {
+        soma += parseInt(cpf[i]) * (11 - i);
+      }
+
+      resto = (soma * 10) % 11;
+      if (resto === 10) resto = 0;
+
+      const segundoDigito = resto;
+
+      // Verifica se os dígitos calculados batem com os do CPF digitado
+      if (primeiroDigito === parseInt(cpf[9]) && segundoDigito === parseInt(cpf[10])) {
+        exibirResultado(`CPF ${cpfBruto} é Válido! ✓`, true);
+      } else {
+        exibirResultado('CPF Inválido! Os dígitos verificadores não conferem.', false);
+      }
+    }
+
+    function exibirResultado(mensagem, valido) {
+      const div = document.getElementById('resultado');
+      div.style.display = 'block';
+      div.textContent = mensagem;
+      div.className = valido ? 'valido' : 'invalido';
+    }
+  </script>
+
+</body>
+</html>
