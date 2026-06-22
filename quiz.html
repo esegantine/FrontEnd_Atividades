@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz — Pilha, Fila e Listas em C</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0B1622; --panel:#16263A; --panel2:#1E3450;
+  --cyan:#38E1C6; --coral:#FF5D6C; --amber:#FFC53D; --violet:#9B8CFF;
+  --ink:#E8EEF4; --muted:#8AA0B8; --line:#26415F;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:radial-gradient(1200px 600px at 50% -10%, #16314e 0%, var(--bg) 60%);
+  color:var(--ink); font-family:"Space Grotesk",system-ui,sans-serif;
+  min-height:100vh; padding:18px 18px 110px; display:flex; justify-content:center;
+}
+.wrap{width:100%; max-width:660px}
+code,.mono{font-family:"JetBrains Mono",ui-monospace,monospace}
+header{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px}
+.title{font-weight:700; font-size:1.05rem; letter-spacing:.3px}
+.title b{color:var(--cyan)}
+.score{font-family:"JetBrains Mono",monospace; font-size:.85rem; color:var(--amber); white-space:nowrap}
+.bar{height:8px; background:var(--panel); border-radius:99px; overflow:hidden; margin-bottom:18px; border:1px solid var(--line)}
+.bar>i{display:block; height:100%; width:0; background:linear-gradient(90deg,var(--cyan),var(--violet)); transition:width .4s ease}
+.card{background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:22px 20px; box-shadow:0 12px 40px rgba(0,0,0,.35)}
+.center{text-align:center}
+h1{font-size:1.6rem; line-height:1.25; margin-bottom:10px}
+h1 .c{color:var(--cyan)} h1 .f{color:var(--amber)} h1 .l{color:var(--violet)}
+.lead{color:var(--muted); margin-bottom:20px; line-height:1.5}
+.menu{display:flex; flex-direction:column; gap:12px; margin-top:8px}
+.mbtn{display:flex; align-items:center; gap:14px; text-align:left; padding:16px 18px; border-radius:14px; border:1px solid var(--line); background:var(--panel2); color:var(--ink); cursor:pointer; font-size:1rem; font-family:inherit; transition:transform .12s, border-color .12s}
+.mbtn:hover{transform:translateY(-2px); border-color:var(--cyan)}
+.mbtn .ic{font-size:1.5rem; width:40px; height:40px; display:flex; align-items:center; justify-content:center; border-radius:10px; flex:none}
+.mbtn .tx b{display:block; font-size:1.05rem; margin-bottom:2px}
+.mbtn .tx span{color:var(--muted); font-size:.82rem; font-family:"JetBrains Mono",monospace}
+.i-pilha{background:rgba(56,225,198,.15); color:var(--cyan)}
+.i-fila{background:rgba(255,197,61,.15); color:var(--amber)}
+.i-lista{background:rgba(155,140,255,.18); color:var(--violet)}
+.i-todos{background:rgba(255,93,108,.15); color:var(--coral)}
+.qnum{font-family:"JetBrains Mono",monospace; font-size:.75rem; color:var(--muted); margin-bottom:8px; text-transform:uppercase; letter-spacing:1px}
+.tag{display:inline-block; font-size:.68rem; font-family:"JetBrains Mono",monospace; padding:2px 8px; border-radius:99px; margin-left:8px; vertical-align:middle}
+.t-pilha{background:rgba(56,225,198,.15); color:var(--cyan)}
+.t-fila{background:rgba(255,197,61,.15); color:var(--amber)}
+.t-lista{background:rgba(155,140,255,.18); color:var(--violet)}
+.q{font-size:1.18rem; line-height:1.45; font-weight:500; margin-bottom:18px}
+.q code{background:#0c1a29; padding:2px 6px; border-radius:6px; font-size:.92em; color:var(--cyan)}
+.opts{display:flex; flex-direction:column; gap:10px}
+.opt{display:flex; gap:12px; align-items:flex-start; padding:13px 15px; border-radius:12px; border:1px solid var(--line); background:var(--panel2); color:var(--ink); cursor:pointer; font-size:1rem; font-family:inherit; line-height:1.4; text-align:left; transition:border-color .12s, background .12s}
+.opt:hover:not(:disabled){border-color:var(--cyan)}
+.opt .k{font-family:"JetBrains Mono",monospace; color:var(--muted); flex:none; font-weight:700}
+.opt.right{border-color:var(--cyan); background:rgba(56,225,198,.14)}
+.opt.right .k{color:var(--cyan)}
+.opt.wrong{border-color:var(--coral); background:rgba(255,93,108,.14)}
+.opt.wrong .k{color:var(--coral)}
+.opt code{background:#0c1a29; padding:1px 5px; border-radius:5px; color:var(--cyan); font-size:.9em}
+.opt:disabled{cursor:default}
+.fb{margin-top:16px; padding:14px 16px; border-radius:12px; border:1px solid var(--line); background:#0e2034; display:none}
+.fb.show{display:block; animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
+.fb .lab{font-family:"JetBrains Mono",monospace; font-size:.72rem; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px}
+.fb .exp .lab{color:var(--cyan)} .fb .mac{margin-top:10px} .fb .mac .lab{color:var(--amber)}
+.fb p{line-height:1.5; color:var(--ink)}
+.codebox{background:#0a1825; border:1px solid var(--line); border-radius:12px; margin:14px 0; overflow:hidden}
+.codebox .ch{font-family:"JetBrains Mono",monospace; font-size:.74rem; color:var(--amber); padding:8px 12px; border-bottom:1px solid var(--line); background:#0e2034}
+.codebox pre{padding:12px 14px; overflow-x:auto; font-family:"JetBrains Mono",monospace; font-size:.82rem; line-height:1.5; color:#cfe3f2; white-space:pre}
+.toggle{display:inline-flex; gap:6px; margin:12px 0 2px; font-size:.85rem; color:var(--muted); cursor:pointer; align-items:center}
+.toggle:hover{color:var(--cyan)}
+.review{margin-top:14px}
+.rev-item{border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:12px; background:var(--panel2)}
+.rev-item .qq{font-weight:500; margin-bottom:8px}
+.rev-item .gg{color:var(--cyan); font-size:.9rem; margin-bottom:6px}
+.rev-item .ee{color:var(--muted); font-size:.88rem; line-height:1.5}
+.big{font-size:2.6rem; font-weight:700; color:var(--cyan)}
+.muted{color:var(--muted)}
+.pill-row{display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin:14px 0}
+.pill{font-size:.72rem; font-family:"JetBrains Mono",monospace; padding:4px 10px; border-radius:99px; border:1px solid var(--line)}
+.btn{padding:14px; border-radius:12px; border:none; font-family:inherit; font-weight:700; font-size:1rem; cursor:pointer; transition:filter .12s, transform .12s}
+.btn:hover{filter:brightness(1.08); transform:translateY(-1px)}
+.btn-primary{background:var(--cyan); color:#06231d}
+.btn-ghost{background:transparent; border:1px solid var(--line); color:var(--muted)}
+.row{display:flex; gap:12px; margin-top:18px}
+.row .btn{flex:1}
+/* BARRA FIXA de acesso rapido */
+.dock{position:fixed; left:0; right:0; bottom:0; z-index:50; display:flex; justify-content:center; gap:12px; padding:14px 18px; background:linear-gradient(180deg, rgba(11,22,34,0) 0%, rgba(11,22,34,.92) 35%, var(--bg) 100%); backdrop-filter:blur(3px)}
+.dock .inner{width:100%; max-width:660px; display:flex; gap:12px}
+.dock .btn{flex:1; box-shadow:0 8px 30px rgba(0,0,0,.45)}
+.dock .btn-back{flex:0 0 auto; min-width:120px}
+.kbd{font-family:"JetBrains Mono",monospace; font-size:.7rem; opacity:.7; margin-left:6px}
+/* ===== Responsivo / celular ===== */
+@media (max-width:640px){
+  body{ padding:12px 12px 104px; }
+  .card{ padding:18px 15px; border-radius:14px; }
+  h1{ font-size:1.32rem; }
+  .lead{ font-size:.95rem; margin-bottom:16px; }
+  .mbtn{ padding:14px 14px; gap:12px; font-size:.96rem; }
+  .ic{ width:38px; height:38px; font-size:1.35rem; }
+  .qnum{ font-size:.78rem; }
+  .opt{ padding:13px 13px; }
+  pre{ font-size:.76rem; padding:11px 12px; }
+  .ch{ font-size:.8rem; }
+  .cat-title{ font-size:16px; margin:20px 0 10px; }
+  .dock{ padding:10px 12px; }
+  .dock .inner{ gap:8px; }
+  .btn{ padding:13px 10px; font-size:.95rem; }
+  .btn-back{ min-width:84px; }
+}
+@media (max-width:380px){
+  h1{ font-size:1.18rem; }
+  .mbtn .tx span{ font-size:.82rem; }
+  pre{ font-size:.72rem; }
+  .kbd{ display:none; }
+  .btn-back{ min-width:72px; }
+}
+
+.i-codigos{background:rgba(120,200,255,.15); color:#7fd1ff}
+.codes-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:4px}
+.codes-head h1{margin:0}
+.cat-title{display:flex;align-items:center;gap:10px;margin:26px 0 12px;font-size:18px;font-weight:800}
+.cat-title .dot{width:12px;height:12px;border-radius:4px;display:inline-block}
+.cat-title.pilha .dot{background:var(--cyan)} .cat-title.fila .dot{background:var(--amber)} .cat-title.lista .dot{background:var(--violet)}
+.codes-wrap{padding-bottom:90px}
+</style>
+</head>
+<body>
+<div class="wrap"><div id="app"></div></div>
+<div class="dock" id="dock"></div>
+<script>
+const PILHA=[{"q":"O que significa a sigla LIFO, que rege a PILHA?","o":["Last In, First Out","Linear Input, Fixed Output","List In, First Out","Last Index, Full Output"],"a":0,"e":"Pilha é LIFO: o último que entra é o primeiro a sair. As operações sempre ocorrem no topo.","m":"Pilha = pilha de pratos: você tira sempre o de cima (o último colocado)."},{"q":"Numa pilha, em qual ponto SEMPRE acontecem a inserção e a remoção?","o":["na base","no meio","no topo (top)","em qualquer posição"],"a":2,"e":"A operação empilhar e/ou desempilhar será sempre realizada no topo (top).","m":"Só mexe no TOPO. Nunca no meio nem na base."},{"q":"A operação de inserir (empilhar) um elemento na pilha se chama:","o":["enqueue","push","append","insert"],"a":1,"e":"push = empilhar; pop = desempilhar. São as duas únicas operações da pilha.","m":"PUSH em-PILHA, POP des-PILHA."},{"q":"A operação que remove o elemento do topo da pilha é:","o":["pop","dequeue","shift","remove_base"],"a":0,"e":"pop desempilha: remove o nó do topo e libera sua memória.","m":"POP = tira de cima."},{"q":"Quantas operações básicas a pilha possui?","o":["uma","duas (push e pop)","três","quatro"],"a":1,"e":"A pilha é simples: possui apenas duas operações, empilhar (push) e desempilhar (pop).","m":"Pilha = só PUSH e POP."},{"q":"Qual é a estrutura mínima de um nó de pilha em C, conforme o professor?","o":["typedef struct apelido_no{ int dado; struct apelido_no *proximo; }no;","struct no{ int dado; };","typedef struct{ int dado; int proximo; }no;","struct no{ float dado; no proximo; };"],"a":0,"e":"O nó precisa de um campo de dado e um ponteiro do PRÓPRIO tipo (struct apelido_no *proximo) para o próximo nó.","m":"Nó = dado + ponteiro pro próximo (do mesmo tipo)."},{"q":"No início, quando a pilha está vazia, o ponteiro *top deve receber:","o":["0","NULL","-1","o primeiro dado"],"a":1,"e":"Inicialmente o topo aponta para NULL, pois a pilha está vazia: no *top=NULL;","m":"Pilha vazia => top = NULL."},{"q":"Na função push, qual comando aloca memória para o novo nó?","o":["new no();","malloc(sizeof(no))","alloc(no)","create(no)"],"a":1,"e":"Em C usamos: no *novo = malloc(sizeof(no)); para alocar dinamicamente o espaço de um nó.","m":"malloc(sizeof(no)) = pede memória do tamanho de 1 nó."},{"q":"Dentro do push, depois de criar o novo nó, para onde o novo->proximo deve apontar?","o":["para NULL sempre","para o topo atual (o antigo top)","para a base","para ele mesmo"],"a":1,"e":"O novo nó passa a apontar para o topo atual, e depois o topo passa a ser o novo nó.","m":"Novo aponta pro topo antigo; depois o topo vira o novo."},{"q":"Quais são as 3 etapas da remoção (pop) segundo o professor?","o":["alocar, copiar, imprimir","criar ponteiro auxiliar no topo, mudar o topo de lugar, liberar a memória (free)","ordenar, remover, somar","buscar, mover, duplicar"],"a":1,"e":"Remoção = 1) ponteiro auxiliar (temp) aponta para o topo; 2) topo passa a apontar para o elemento abaixo; 3) free() libera o nó.","m":"Aux no topo → desce o topo → free()."},{"q":"Por que é necessário usar free() ao desempilhar?","o":["Para ordenar a pilha","Para liberar a memória alocada dinamicamente e evitar vazamento","Porque o C exige free em todo if","Para imprimir o valor"],"a":1,"e":"Cada nó foi alocado com malloc; ao remover é preciso devolver essa memória com free(temp), senão ocorre vazamento de memória.","m":"malloc pede, free devolve. Removeu? free!"},{"q":"No pop, qual a sequência correta dos ponteiros (top não vazio)?","o":["free(top); top=top->proximo;","temp=top; top=top->proximo; free(temp);","top=NULL; free(top);","temp=top->proximo; free(top);"],"a":1,"e":"Guarda o topo em temp, move o topo para o próximo e só então faz free(temp) no nó antigo. Assim não se perde a referência do nó a ser liberado.","m":"Guarda em temp ANTES de mover o topo; free no final."},{"q":"O que o professor marca como 'Importante!' ao final do programa principal da pilha?","o":["fechar o arquivo","while(top!=NULL) pop(); para esvaziar a pilha","imprimir duas vezes","chamar push() de novo"],"a":1,"e":"Antes de encerrar, esvazia tudo: while(top!=NULL) pop(); garantindo que toda a memória seja liberada.","m":"Antes de sair: esvazie a pilha com while(top!=NULL) pop();"},{"q":"Na função imprimir a pilha, como percorremos os nós?","o":["temp=top; while(temp!=NULL){ printf; temp=temp->proximo; }","for(i=0;i<n;i++) print(v[i]);","while(top){ printf(top); }","percorre da base ao topo com índice"],"a":0,"e":"Cria um ponteiro temp recebendo o topo; enquanto temp!=NULL imprime o dado e avança temp=temp->proximo.","m":"temp começa no topo e anda até NULL."},{"q":"Dada a pilha (topo→base): 4, 3, 2, 1 — após um pop(), o novo topo é:","o":["1","2","3","4"],"a":2,"e":"O pop remove o topo (4), então o 3 passa a ser o novo topo.","m":"Pop tira o de cima; o de baixo dele vira topo."},{"q":"TESTE DE MESA: pilha vazia. Execute push(A), push(B), pop(), push(C). Conteúdo (topo→base):","o":["C, A","C, B, A","A, C","B, C"],"a":0,"e":"push A → [A]; push B → [B,A]; pop remove B → [A]; push C → [C,A]. Topo=C, base=A.","m":"Faça passo a passo anotando o topo a cada operação."},{"q":"TESTE DE MESA: Soma=0; POP(x); Soma=Soma+x; x=10; PUSH(x); x=12; PUSH(x); POP(x); POP(x); Soma=Soma+x; — Pilha inicial (topo→base): 7,5,3,1. Valor final de Soma?","o":["7","17","12","10"],"a":1,"e":"POP(x)→x=7, Soma=7. PUSH 10, PUSH 12. POP→x=12. POP→x=10. Soma=7+10=17.","m":"O último POP define o x que entra na soma final."},{"q":"TESTE DE MESA (pilha inicia vazia): push('A'),push('B'),pop(),push('C'),push('D'),pop(),pop() — topo atual:","o":["A","B","C","D"],"a":0,"e":"[A]→[B,A]→pop B→[A]→[C,A]→[D,C,A]→pop D→[C,A]→pop C→[A]. Topo=A.","m":"Conte: 4 pushes e 3 pops sobra 1 elemento (o A)."},{"q":"Uma aplicação prática típica de PILHA é:","o":["fila de impressão","histórico (voltar) do navegador / desfazer (Ctrl+Z)","atendimento por ordem de chegada","caixa de banco"],"a":1,"e":"Voltar a página e o 'desfazer' usam pilha: o último estado é o primeiro a ser recuperado (LIFO).","m":"'Voltar/Desfazer' = pegar o último = LIFO = pilha."},{"q":"O que acontece se atribuirmos NULL ao ponteiro de topo de uma pilha que tinha elementos (sem free)?","o":["A pilha é ordenada","Perdemos o acesso aos nós e ocorre vazamento de memória","Os nós são liberados automaticamente","Nada muda"],"a":1,"e":"Perde-se a referência para a cadeia de nós; eles continuam alocados, mas inacessíveis (memory leak).","m":"Perdeu o topo sem free = memória vazada e perdida."},{"q":"PILHA usa qual forma de alocação de memória?","o":["estática (tamanho fixo)","dinâmica (malloc/free em tempo de execução)","só na pilha do sistema","em disco"],"a":1,"e":"É uma estrutura de dados dinâmica: cresce e diminui conforme inserções/remoções, usando malloc e free.","m":"Dinâmica = malloc pra crescer, free pra diminuir."},{"q":"Verificar se uma palavra é PALÍNDROMO é um exercício clássico resolvido com:","o":["fila","pilha","lista circular","vetor ordenado"],"a":1,"e":"Empilhando os caracteres e desempilhando, obtém-se a palavra invertida; se for igual à original, é palíndromo.","m":"Pilha inverte naturalmente → ótima para palíndromo."},{"q":"Verificar se parênteses/colchetes/chaves estão balanceados usa qual estrutura?","o":["pilha","fila","lista duplamente encadeada","árvore"],"a":0,"e":"Empilha-se cada abre-símbolo e, ao encontrar um fecha, desempilha o par correspondente. Pilha vazia no fim = balanceado.","m":"Abriu? push. Fechou? pop e confere o par."},{"q":"Na atividade de laboratório, o nó da pilha guarda uma struct 'dados'. Quais campos ela tem?","o":["só um int","nome, nota1, nota2 e sub","apenas nome","frente e fim"],"a":1,"e":"A struct dados tem nome, nota1, nota2 e sub; o nó é composto por essa struct (dados) e o ponteiro *proximo.","m":"Nó pode guardar uma struct inteira (aluno: nome+notas)."},{"q":"Para que servem os PROTÓTIPOS (ex.: void push(dados n); void pop();) no início do código?","o":["para imprimir","para avisar antecipadamente ao compilador que aquelas funções existem","para alocar memória","para criar o menu"],"a":1,"e":"Protótipos declaram as funções antes do main, dizendo ao compilador que elas existem (e serão definidas depois).","m":"Protótipo = 'apresentação' das funções ao compilador."},{"q":"INVERTER PILHA (ideia do prof.): qual é a estratégia central?","o":["ordenar os valores","criar uma nova pilha (top2) e ir empilhando nela cada elemento da pilha atual","imprimir de trás pra frente","trocar o dado da base com o topo"],"a":1,"e":"Percorre-se a pilha atual empilhando cada elemento numa nova pilha (top2); como pilha inverte, o resultado fica invertido. No fim, esvazia a atual e faz top=top2.","m":"Empilhar tudo numa pilha nova já INVERTE a ordem."},{"q":"No fim da função inverte(), o que se faz com a pilha original e o top2?","o":["nada","esvazia a pilha original e faz top = top2 (a nova pilha invertida)","duplica as duas","apaga top2"],"a":1,"e":"Após montar top2 invertida, chama-se esvazia() na original e top passa a apontar para top2.","m":"Esvazia a velha e aponta o top pra nova (top2)."},{"q":"No menu da atividade da pilha, além de empilhar/desempilhar/imprimir/sair, há a opção:","o":["ordenar pilha","inverter pilha","buscar na pilha","duplicar pilha"],"a":1,"e":"O menu da atividade contempla também 'inverter pilha'.","m":"Atividade da pilha tem opção extra: INVERTER."},{"q":"Na memória, como ficam dispostos os nós da pilha (alocados por malloc)?","o":["sempre em sequência contígua","dispersos pela memória, ligados por ponteiros","em ordem crescente","em um único bloco fixo"],"a":1,"e":"Diferente das ilustrações, na memória os nós ficam dispersos; o que os mantém na ordem são os ponteiros.","m":"Ponteiros é que dão a ordem; na RAM eles ficam espalhados."},{"q":"Após desempilhar TODOS os elementos, o ponteiro top fica:","o":["apontando para o último removido","NULL","apontando para a base","indefinido para sempre"],"a":1,"e":"Quando o último nó é removido, o topo volta a ser NULL, indicando pilha vazia.","m":"Esvaziou tudo → top volta a NULL."}];
+const FILA=[{"q":"O que significa a sigla FIFO, que rege a FILA?","o":["First In, First Out","Fast Input, Full Output","Final In, First Out","First Index, Free Output"],"a":0,"e":"Fila é FIFO: o primeiro a entrar é o primeiro a sair, como uma fila de banco.","m":"Fila do banco: quem chega primeiro é atendido primeiro."},{"q":"Em uma FILA, onde ocorrem as inserções e as remoções?","o":["ambas no topo","inserção no fim, remoção no início","inserção no início, remoção no fim","tudo no meio"],"a":1,"e":"As inserções sempre ocorrem no fim da fila e as remoções sempre no início.","m":"Entra no FIM, sai pela FRENTE."},{"q":"Quais ponteiros controlam a fila no código do professor?","o":["top e base","frente e fim","head e top","inicio e topo"],"a":1,"e":"Dois ponteiros do tipo nó: *frente (início, de onde sai) e *fim (final, onde entra).","m":"FRENTE para sair, FIM para entrar."},{"q":"A operação de inserir na fila (enfileirar) é chamada de:","o":["push","enqueue","pop","peek"],"a":1,"e":"enqueue = enfileirar (inserir no fim); dequeue/remover = desenfileirar (remover do início).","m":"ENqueue ENtra; DEqueue sai."},{"q":"A operação de remover da fila (desenfileirar) é chamada de:","o":["push","enqueue","dequeue (remover)","insert"],"a":2,"e":"Desenfileirar remove o elemento da frente da fila e libera sua memória.","m":"Desenfileirar = tirar quem está na FRENTE."},{"q":"Estrutura mínima do nó de fila em C (professor):","o":["struct no{ int dado; };","typedef struct apelido_no{ int dado; struct apelido_no *proximo; }no;","typedef struct{ int frente, fim; }no;","struct no{ int dado; int *fim; };"],"a":1,"e":"Igual à pilha: um campo de dado e um ponteiro proximo do próprio tipo. O que muda é a manipulação.","m":"Nó de fila = nó de pilha: dado + ponteiro proximo."},{"q":"Quando a fila está VAZIA, os valores de frente e fim são:","o":["0 e 0","NULL e NULL","frente=NULL, fim=1","indefinidos"],"a":1,"e":"Com a fila vazia, ambos os ponteiros frente e fim apontam para NULL.","m":"Fila vazia: frente = fim = NULL."},{"q":"No enqueue, ao inserir em uma fila VAZIA, o que acontece com frente e fim?","o":["só fim aponta para o novo","ambos (frente e fim) passam a apontar para o novo elemento","só frente aponta","nada muda"],"a":1,"e":"Na fila vazia, frente e fim apontam para o único elemento inserido; e novo->proximo = NULL.","m":"Primeiro da fila: frente E fim apontam pra ele."},{"q":"No enqueue, ao inserir em uma fila que JÁ tem elementos, o que se faz?","o":["frente->proximo = novo; frente = novo;","fim->proximo = novo; fim = novo;","novo->proximo = frente;","só troca o frente"],"a":1,"e":"O campo proximo do último (fim) recebe o novo nó, e então fim passa a apontar para o novo. A frente NÃO muda.","m":"Liga o fim no novo e move o fim; frente fica quieta."},{"q":"No enqueue, o novo->proximo deve receber:","o":["frente","NULL (pois será o último)","fim","ele mesmo"],"a":1,"e":"Como o novo nó entra no final, ele não aponta para ninguém: novo->proximo = NULL.","m":"Quem entra no fim aponta pra NULL."},{"q":"Passos do dequeue (remover) segundo o professor:","o":["temp=frente; frente=frente->proximo; se frente==NULL então fim=NULL; free(temp);","temp=fim; fim=fim->proximo; free(temp);","frente=NULL; free(frente);","fim=frente; free(fim);"],"a":0,"e":"Guarda a frente em temp; a frente avança para o próximo; se a fila ficou vazia, fim também vira NULL; por fim free(temp).","m":"Sai pela frente: temp=frente, frente avança, free."},{"q":"Por que no dequeue, quando a fila fica vazia, fim também recebe NULL?","o":["por estética","porque sem elementos não há último; manter fim apontando geraria erro","para ordenar","porque o C exige"],"a":1,"e":"Se a frente vira NULL (fila esvaziou), o fim precisa virar NULL também, senão ficaria apontando para memória já liberada.","m":"Esvaziou? Zere os DOIS: frente=NULL e fim=NULL."},{"q":"Antes de desenfileirar, o que verificamos?","o":["se a fila está cheia","se a fila está vazia (frente==NULL)","se o dado é par","o tamanho do array"],"a":1,"e":"Para desenfileirar, a fila não pode estar vazia; se frente==NULL, imprime 'Fila vazia'.","m":"Dequeue só com fila não vazia."},{"q":"Como percorremos a fila para imprimir (função imprimir)?","o":["temp=fim; while(temp){ ... }","temp=frente; while(temp!=NULL){ printf; temp=temp->proximo; }","do início ao fim com índice","só imprime a frente"],"a":1,"e":"Começa pela frente e avança com temp=temp->proximo até NULL, imprimindo cada dado.","m":"Imprime começando pela FRENTE até NULL."},{"q":"TESTE DE MESA: fila vazia. enqueue(30), enqueue(22), dequeue(). Quem está na frente agora?","o":["30","22","NULL","fim"],"a":1,"e":"Enfileira 30 (frente=30), enfileira 22. Dequeue remove o 30 (FIFO). Agora a frente é 22.","m":"Sai sempre o que chegou primeiro: saiu o 30."},{"q":"TESTE DE MESA: enqueue(1),enqueue(2),enqueue(3),dequeue(),enqueue(4). Conteúdo (frente→fim):","o":["2, 3, 4","1, 2, 3","4, 3, 2","3, 4"],"a":0,"e":"[1]→[1,2]→[1,2,3]→dequeue tira 1→[2,3]→[2,3,4]. Frente=2, fim=4.","m":"Tira da frente, acrescenta no fim."},{"q":"Uma aplicação prática clássica de FILA é:","o":["desfazer (Ctrl+Z)","fila de impressão de documentos","verificar palíndromo","histórico de navegação"],"a":1,"e":"A impressora usa fila para ordenar os documentos: o primeiro enviado é o primeiro impresso (FIFO).","m":"Impressora = fila: primeiro a chegar, primeiro a imprimir."},{"q":"No main da fila do professor, o menu costuma ter as opções:","o":["empilhar, desempilhar, sair","0-Sair, 1-Inserir/Enfileirar, 2-Remover/Desenfileirar, 3-Imprimir","ordenar, buscar, trocar","abrir, salvar"],"a":1,"e":"O menu lê uma opção (scanf) e usa switch/case para inserir, remover ou imprimir, repetindo até a opção de sair.","m":"Menu de fila: Inserir / Remover / Imprimir / Sair."},{"q":"Em uma FILA CIRCULAR, qual a característica principal?","o":["o último elemento nunca é removido","o final da fila pode se conectar novamente ao início","só permite uma inserção","elimina o conceito FIFO"],"a":1,"e":"Na fila circular o final volta a se ligar ao início, otimizando o reaproveitamento de memória.","m":"Circular = o fim 'dá a volta' e reencontra o começo."},{"q":"FILA é uma estrutura de dados:","o":["estática de tamanho fixo","dinâmica (cresce e diminui com malloc/free)","apenas teórica","baseada em vetor obrigatório"],"a":1,"e":"É dinâmica: cresce ao enfileirar e diminui ao desenfileirar, alocando/liberando nós em tempo de execução.","m":"Fila dinâmica = malloc no enqueue, free no dequeue."},{"q":"INTERCALAR FILAS (atividade): a ideia é percorrer a FILA1 e distribuir cada elemento usando:","o":["o valor do dado","um contador: par vai para uma fila, ímpar para outra","ordem alfabética","o tamanho da fila"],"a":1,"e":"Percorre-se a FILA1 com um contador; conforme o contador é par ou ímpar, o valor é enfileirado na FILA2 ou na FILA3, intercalando.","m":"Contador par → uma fila; ímpar → a outra."},{"q":"Na função redistribuir(), o que se faz com cada nó da FILA1 ao processá-lo?","o":["copia e mantém na FILA1","guarda o valor numa variável, dá free no nó da FILA1 e enfileira o valor na FILA2 ou FILA3","ordena","duplica o nó"],"a":1,"e":"valor=frente1->dado; temp=frente1; frente1=frente1->proximo; free(temp); depois enqueue do valor na fila 2 ou 3 conforme cont%2.","m":"Guarda o valor, libera o nó da FILA1, joga na fila certa."},{"q":"Na redistribuição, o que acontece com a FILA1 ao final?","o":["fica com metade","fica vazia (frente1=fim1=NULL), pois tudo foi distribuído","fica duplicada","permanece igual"],"a":1,"e":"Cada nó da FILA1 é liberado e seu valor enviado às outras filas, esvaziando a FILA1 completamente.","m":"FILA1 doa tudo para FILA2/FILA3 e fica vazia."},{"q":"Na fila, ao desenfileirar, qual nó é removido?","o":["o do fim","o da frente (primeiro que entrou)","um do meio","o maior valor"],"a":1,"e":"FIFO: remove-se sempre o elemento mais antigo, que está na frente.","m":"Sai quem está há mais tempo: a frente."},{"q":"Diferença entre PILHA e FILA quanto à remoção:","o":["ambas removem do topo","pilha remove do topo (último); fila remove da frente (primeiro)","ambas removem da frente","fila remove do topo"],"a":1,"e":"Pilha: LIFO (remove o último inserido). Fila: FIFO (remove o primeiro inserido).","m":"Pilha tira o último; fila tira o primeiro."},{"q":"Na atividade das 3 filas, qual opção do menu enfileira VÁRIOS elementos de uma vez?","o":["desenfileirar","enfileirar dez elementos randômicos na FILA1","imprimir","sair"],"a":1,"e":"O menu tem a opção de enfileirar dez elementos randômicos na FILA1, além de enfileirar um a um.","m":"Tem opção de gerar 10 randômicos de uma vez."},{"q":"Se enfileirarmos 4 elementos e desenfileirarmos 4, a fila fica:","o":["com 1 elemento","vazia, com frente=fim=NULL","com erro","com 4 elementos"],"a":1,"e":"Removendo todos, frente e fim voltam a NULL (fila vazia).","m":"Entrou 4, saiu 4 → frente=fim=NULL."},{"q":"Para liberar TODA a fila ao final do programa, devemos:","o":["fazer frente=NULL","desenfileirar (com free) até a fila ficar vazia","só fechar o programa","chamar enqueue"],"a":1,"e":"Percorre removendo cada nó com free até frente==NULL, evitando vazamento de memória.","m":"Esvazie tudo com free antes de sair."},{"q":"Qual aplicação NÃO é típica de fila?","o":["fila de impressão","atendimento por ordem de chegada","desfazer/refazer (Ctrl+Z)","processamento de tarefas em ordem"],"a":2,"e":"Desfazer/refazer é caso de PILHA (LIFO). Os demais são casos de fila (FIFO).","m":"Ctrl+Z é pilha, não fila."},{"q":"O ponteiro *frente, ao inserir um elemento em fila NÃO vazia, deve:","o":["mudar para o novo","permanecer inalterado","virar NULL","apontar para o fim"],"a":1,"e":"Ao enfileirar com a fila já tendo elementos, só o fim muda; a frente continua apontando para o primeiro.","m":"Inseriu no fim? A frente não se mexe."}];
+const LISTA=[{"q":"Qual a principal diferença da LISTA em relação a pilha e fila?","o":["a lista é estática","na lista NÃO há regras fixas: pode inserir/remover no início, meio, fim ou em qualquer parte","a lista só remove do topo","a lista não usa ponteiros"],"a":1,"e":"Pilha insere/remove no topo, fila no fim/início; já a lista é livre: início, meio, fim ou ordenada.","m":"Lista = liberdade: insere/remove onde quiser."},{"q":"Quais são os três tipos de lista estudados?","o":["pilha, fila, vetor","simplesmente encadeada, duplamente encadeada e circular","crescente, decrescente, aleatória","binária, ternária, circular"],"a":1,"e":"Lista simplesmente encadeada, duplamente encadeada e circular.","m":"Simples, Dupla e Circular."},{"q":"Em uma lista SIMPLESMENTE encadeada, cada nó possui:","o":["dois ponteiros (anterior e próximo)","um valor e um ponteiro para o próximo nó","só um valor","um ponteiro para o início"],"a":1,"e":"Cada nó tem um valor e UMA referência para o próximo nó. O último aponta para NULL.","m":"Simples = um ponteiro só, pro próximo."},{"q":"Em uma lista simplesmente encadeada, em qual sentido percorremos?","o":["nos dois sentidos","apenas em uma direção, do início para o fim","do fim para o início","aleatório"],"a":1,"e":"Possui um nó inicial e, a partir dele, percorre-se a lista numa única direção (início → fim).","m":"Simples = mão única: começo → fim."},{"q":"Em uma lista DUPLAMENTE encadeada, cada nó possui:","o":["só o ponteiro próximo","dois ponteiros: um para o próximo e um para o anterior","três ponteiros","nenhum ponteiro"],"a":1,"e":"Dois ponteiros permitem percorrer nos dois sentidos: início↔fim.","m":"Dupla = dois ponteiros: anterior e próximo."},{"q":"Característica principal da lista CIRCULAR:","o":["o último nó aponta para NULL","o último nó da lista aponta novamente para o primeiro (início)","não tem nó inicial","só tem um nó"],"a":1,"e":"Na circular, o último nó aponta de volta para o início; é preciso cuidado para não cair em loop infinito.","m":"Circular = o último 'dá a volta' pro primeiro."},{"q":"Qual o cuidado ao percorrer uma lista circular?","o":["não usar ponteiros","não entrar em loop infinito","não usar malloc","não imprimir"],"a":1,"e":"Como o último aponta para o início, sem uma condição de parada o percurso nunca termina (loop infinito).","m":"Circular precisa de condição de parada senão roda pra sempre."},{"q":"Estrutura típica do nó e da lista (professor):","o":["typedef struct no{ int valor; struct no *proximo; }No;  typedef struct{ No *inicio; int tam; }Lista;","struct no{ int valor; };","typedef struct{ int inicio; }Lista;","struct{ No proximo; }"],"a":0,"e":"O nó tem valor e ponteiro proximo; a Lista tem um ponteiro para o início e, opcionalmente, o tamanho (tam).","m":"Nó = valor+proximo; Lista = ponteiro pro início (+tam opcional)."},{"q":"Na função inserir_inicio(no **lista,int num), o que faz 'novo->proximo = *lista;'?","o":["aponta o novo para NULL","faz o novo apontar para o antigo início da lista","apaga a lista","cria o main"],"a":1,"e":"O novo nó passa a apontar para o que era o início; depois *lista=novo, e o novo vira o início.","m":"Novo aponta pro antigo início; depois vira o novo início."},{"q":"Ainda no inserir_inicio, qual a linha que efetiva o novo como início?","o":["novo->valor=num;","*lista = novo;","free(novo);","return;"],"a":1,"e":"*lista = novo; faz o ponteiro de início da lista passar a apontar para o novo nó.","m":"*lista = novo => o novo é o novo começo."},{"q":"Por que inserir_inicio recebe ponteiro de ponteiro (no **lista)?","o":["para somar","para conseguir alterar o ponteiro 'início' da lista fora da função","para imprimir","por causa do for"],"a":1,"e":"Com ** a função altera para onde o início aponta no main, refletindo a mudança fora dela.","m":"** = mudar o início lá de fora."},{"q":"Ao inserir no FIM de uma lista, como encontramos o último nó?","o":["acessando lista[n-1]","com um aux percorrendo enquanto aux->proximo != NULL","pelo ponteiro fim sempre presente","não é possível"],"a":1,"e":"Um ponteiro aux recebe o início e avança (looping) até aux->proximo==NULL, ou seja, o último nó.","m":"Anda com aux até o próximo ser NULL = chegou no fim."},{"q":"Ao inserir no fim, o novo->proximo recebe:","o":["o início","NULL (será o último elemento)","o anterior","ele mesmo"],"a":1,"e":"Como o novo nó passa a ser o último, ele não aponta para ninguém: novo->proximo = NULL.","m":"Último da lista aponta pra NULL."},{"q":"Na inserção ORDENADA no meio, o laço usa a condição (professor):","o":["while(aux!=NULL)","while(aux->valor != ant && aux->proximo)","for(i=0;i<n;i++)","while(aux==NULL)"],"a":1,"e":"Percorre com aux enquanto não encontra a posição (ant) e ainda há próximo, então liga novo->proximo=aux->proximo; aux->proximo=novo;","m":"Anda até achar a posição, depois 'costura' os ponteiros."},{"q":"Ao inserir no meio, qual a 'costura' correta dos ponteiros?","o":["aux->proximo = novo; novo->proximo = aux;","novo->proximo = aux->proximo; aux->proximo = novo;","novo = aux;","aux = novo->proximo;"],"a":1,"e":"O novo aponta para o que vinha depois de aux; depois aux passa a apontar para o novo.","m":"Novo herda o próximo do aux; aux passa a apontar pro novo."},{"q":"TESTE DE MESA: lista 10→20→30→40→50. Após remover o 30, a lista fica:","o":["10→20→40→50","10→20→30→50","20→30→40→50","10→30→40→50"],"a":0,"e":"Religando o ponteiro do 20 para o 40 (e liberando o 30), a lista vira 10→20→40→50.","m":"Remover do meio = ligar o anterior no seguinte e dar free."},{"q":"Função de busca sequencial: 'while(aux && aux->valor != num) aux=aux->proximo;' — o que ela faz?","o":["ordena a lista","percorre nó a nó até achar o valor ou acabar a lista (NULL)","remove todos","conta os pares"],"a":1,"e":"Anda pela lista enquanto não chega ao fim e o valor atual é diferente do procurado; para ao achar ou ao chegar em NULL.","m":"Busca = anda nó a nó até achar ou bater no NULL."},{"q":"Estrutura mínima de um nó de lista CIRCULAR difere por:","o":["não ter valor","ter o ponteiro do último apontando para o primeiro (não para NULL)","ter dois valores","não ter ponteiro"],"a":1,"e":"O nó em si é igual (valor + proximo); a diferença é que o último proximo aponta para o início, não para NULL.","m":"Mesmo nó, mas o último aponta pro começo."},{"q":"Qual operação é MUITO comum em listas, mas não nas pilhas/filas?","o":["push","busca (procurar um elemento em qualquer posição)","FIFO","LIFO"],"a":1,"e":"Como a lista permite acesso a qualquer posição, a operação de busca é muito comum nela.","m":"Lista = você procura; pilha/fila só nas pontas."},{"q":"Para acessar um elemento numa posição específica da lista encadeada, é preciso:","o":["usar índice direto lista[i]","percorrer a lista a partir do primeiro nó","usar hash","impossível"],"a":1,"e":"Não há acesso direto por índice; percorre-se do início até a posição desejada.","m":"Sem índice: ande do começo até onde quer chegar."},{"q":"Na lista, o campo 'tam' (tamanho) da struct Lista é:","o":["obrigatório","opcional, um controle a mais conforme a necessidade","o valor do nó","o ponteiro do início"],"a":1,"e":"O tamanho é opcional; podem existir outros controles de acordo com a necessidade do problema.","m":"tam = controle extra, não é obrigatório."},{"q":"O que faz a função sair()/liberar de uma lista?","o":["imprime a lista","percorre liberando (free) cada nó alocado dinamicamente antes de encerrar","ordena a lista","cria novos nós"],"a":1,"e":"Percorre a lista guardando o próximo, dá free no nó atual e avança, até liberar todos os nós (evita vazamento).","m":"Guarde o próximo, free no atual, avance — até zerar."},{"q":"Numa lista duplamente encadeada, ter também um ponteiro *fim ajuda a:","o":["ordenar","percorrer de trás para frente com facilidade","alocar memória","imprimir o início"],"a":1,"e":"Com *fim e o ponteiro 'anterior', é fácil percorrer do fim para o início.","m":"*fim + anterior = andar de trás pra frente fácil."},{"q":"Um modelo prático de lista CIRCULAR no dia a dia é:","o":["pilha de pratos","troca de turnos / rodízio de jogadores (volta ao primeiro)","desfazer no editor","fila do banco"],"a":1,"e":"Rodízios e escalas que voltam ao primeiro após o último são exemplos de lista circular.","m":"Rodízio que volta ao começo = circular."},{"q":"Em 'no *novo = malloc(sizeof(no));', se a alocação FALHAR, novo será:","o":["0 válido","NULL (por isso testamos if(novo))","um nó vazio","o início"],"a":1,"e":"malloc retorna NULL se não houver memória; por isso o código testa if(novo) antes de usar, senão imprime erro.","m":"malloc falhou = NULL; sempre teste o ponteiro."},{"q":"Na inserir_inicio, se a alocação falhar, o professor faz:","o":["continua normalmente","printf(\"erro ao alocar memoria\");","free(lista);","reinicia o programa"],"a":1,"e":"No else do if(novo) é exibida a mensagem 'erro ao alocar memoria'.","m":"Sem memória → avise o usuário do erro."},{"q":"Qual afirmação sobre listas encadeadas é VERDADEIRA?","o":["precisam de memória sequencial","cada elemento é chamado de nó","não permitem inserção dinâmica","não usam ponteiros"],"a":1,"e":"Cada elemento da lista encadeada é um nó; elas usam ponteiros e alocação dinâmica (não precisam de memória contígua).","m":"Elemento da lista = nó."},{"q":"O último nó de uma lista SIMPLESMENTE encadeada (não circular) aponta para:","o":["o primeiro nó","NULL","o nó anterior","ele mesmo"],"a":1,"e":"O último nó tem proximo = NULL, indicando o fim da lista.","m":"Fim da lista simples = NULL."},{"q":"No exercício integrador (pizzaria), qual estrutura guarda o CADASTRO dos 10 sorteados?","o":["pilha","fila","lista","vetor fixo"],"a":2,"e":"A lista representa o cadastro das pessoas autorizadas; a fila organiza a chegada e a pilha guarda as pizzas prontas.","m":"Cadastro = LISTA; chegada = FILA; pizzas = PILHA."},{"q":"Por que a lista é chamada de estrutura de dados DINÂMICA?","o":["porque é rápida","porque pode crescer e diminuir em tempo de execução com malloc/free","porque tem tamanho fixo","porque usa vetor"],"a":1,"e":"Assim como pilha e fila, a lista aloca e libera nós durante a execução, ajustando seu tamanho conforme a necessidade.","m":"Dinâmica = muda de tamanho rodando, com malloc/free."}];
+const CODES={"pilha":{"snippets":[{"h":"Estrutura do nó","c":"typedef struct apelido_no{\n    int dado;\n    struct apelido_no *proximo;\n}no;\n\nno *top = NULL;   // pilha começa vazia"},{"h":"Empilhar (push)","c":"void push(int item){\n    no *novo = malloc(sizeof(no));\n    novo->dado = item;\n    novo->proximo = top;  // aponta pro topo atual\n    top = novo;           // novo vira o topo\n}"},{"h":"Desempilhar (pop) — 3 etapas","c":"void pop(){\n    if(top == NULL){          // pilha vazia\n        printf(\"Pilha vazia\\n\");\n        return;\n    }\n    no *temp = top;           // 1) aux no topo\n    top = top->proximo;       // 2) desce o topo\n    free(temp);               // 3) libera a memoria\n}"},{"h":"Imprimir","c":"void imprimir(){\n    no *temp = top;\n    while(temp != NULL){\n        printf(\"%d \", temp->dado);\n        temp = temp->proximo;\n    }\n    printf(\"\\n\");\n}"},{"h":"Inverter a pilha (atividade)","c":"void inverte(){\n    if(top != NULL){\n        no *temp = top;\n        no *top2 = NULL;\n        while(temp != NULL){\n            no *novo = malloc(sizeof(no));\n            novo->dado = temp->dado;\n            novo->proximo = top2;  // empilha na nova\n            top2 = novo;\n            temp = temp->proximo;\n        }\n        esvazia();   // limpa a pilha antiga\n        top = top2;  // top aponta pra invertida\n    }\n}"},{"h":"Importante! (esvaziar ao sair)","c":"while(top != NULL)   // antes de encerrar\n    pop();           // libera TODA a memoria"}]},"fila":{"snippets":[{"h":"Estrutura do nó","c":"typedef struct apelido_no{\n    int dado;\n    struct apelido_no *proximo;\n}no;\n\nno *frente = NULL;   // de onde SAI\nno *fim    = NULL;   // onde ENTRA"},{"h":"Enfileirar (enqueue)","c":"void enqueue(int item){\n    no *novo = malloc(sizeof(no));\n    novo->dado = item;\n    novo->proximo = NULL;\n    if(fim == NULL){        // fila vazia\n        frente = novo;\n        fim = novo;\n    } else {                // fila com elementos\n        fim->proximo = novo;\n        fim = novo;\n    }\n}"},{"h":"Desenfileirar (remover)","c":"No* remover(No **fila){\n    No *remove = NULL;\n    if(*fila){\n        remove = *fila;          // guarda a frente\n        *fila = remove->proximo; // frente avanca\n    } else\n        printf(\"Fila vazia.\\n\");\n    return remove;   // no main: free(remove)\n}"},{"h":"Redistribuir / intercalar FILA1 nas FILAS 2 e 3","c":"void redistribuir(){\n    int cont = 0;\n    while(frente1 != NULL){\n        int valor = frente1->dado;\n        no *temp = frente1;\n        frente1 = frente1->proximo;\n        if(frente1 == NULL) fim1 = NULL;\n        free(temp);            // remove da FILA1\n        if(cont % 2 == 0)\n            enqueue2(valor);   // par  -> FILA2\n        else\n            enqueue3(valor);   // impar-> FILA3\n        cont++;\n    }\n}"},{"h":"Imprimir","c":"void imprimir(no *fila){\n    while(fila){\n        printf(\"%d \", fila->dado);\n        fila = fila->proximo;\n    }\n    printf(\"\\n\");\n}"}]},"lista":{"snippets":[{"h":"Estrutura do nó e da lista","c":"typedef struct no{\n    int valor;\n    struct no *proximo;\n}No;\n\ntypedef struct{\n    No *inicio;\n    int tam;      // opcional\n}Lista;"},{"h":"Inserir no início","c":"void inserir_inicio(no **lista, int num){\n    no *novo = malloc(sizeof(no));\n    if(novo){\n        novo->valor = num;\n        novo->proximo = *lista; // aponta pro antigo inicio\n        *lista = novo;          // novo vira o inicio\n    } else\n        printf(\"erro ao alocar memoria\\n\");\n}"},{"h":"Inserir no fim","c":"no *aux, *novo = malloc(sizeof(no));\nif(novo){\n    novo->valor = num;\n    novo->proximo = NULL;\n    if(*lista == NULL){       // lista vazia\n        *lista = novo;\n    } else {\n        aux = *lista;\n        while(aux->proximo)   // acha o ultimo\n            aux = aux->proximo;\n        aux->proximo = novo;\n    }\n}"},{"h":"Busca sequencial","c":"No* buscar(Lista *lista, int num){\n    No *aux, *no = NULL;\n    aux = lista->inicio;\n    while(aux && aux->valor != num)\n        aux = aux->proximo;\n    if(aux)\n        no = aux;\n    return no;\n}"}]}};
+
+
+const BANKS = {pilha:PILHA, fila:FILA, lista:LISTA};
+const LABELS = {pilha:"Pilha", fila:"Fila", lista:"Lista"};
+let cat=null, list=[], idx=0, score=0, wrong=[], answered=false, showCode=true, mode='menu';
+const app=document.getElementById('app');
+const dock=document.getElementById('dock');
+
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+// embaralha as ALTERNATIVAS de cada questao e recalcula o indice correto
+function prep(q,c){
+  const correct = q.o[q.a];
+  const opts = shuffle(q.o);
+  return {q:q.q, o:opts, a:opts.indexOf(correct), e:q.e, m:q.m, _cat:c};
+}
+
+function menu(){
+  mode='menu'; cat=null; dock.innerHTML='';
+  app.innerHTML=`
+  <div class="card center">
+    <h1>Quiz <span class="c">Pilha</span> · <span class="f">Fila</span> · <span class="l">Listas</span><br>em Linguagem C</h1>
+    <p class="lead">Escolha um tema. São <b>30 questões</b> de cada, com explicação, <b>macete</b> e os <b>códigos do professor</b>. As alternativas são embaralhadas a cada vez.</p>
+    <div class="menu">
+      <button class="mbtn" onclick="start('pilha')"><span class="ic i-pilha">▣</span><span class="tx"><b>Pilha (LIFO)</b><span>30 questões · push / pop / free / inverter</span></span></button>
+      <button class="mbtn" onclick="start('fila')"><span class="ic i-fila">▤</span><span class="tx"><b>Fila (FIFO)</b><span>30 questões · enqueue / dequeue / intercalar</span></span></button>
+      <button class="mbtn" onclick="start('lista')"><span class="ic i-lista">▦</span><span class="tx"><b>Listas encadeadas</b><span>30 questões · inserir / buscar / liberar</span></span></button>
+      <button class="mbtn" onclick="start('todos')"><span class="ic i-todos">★</span><span class="tx"><b>Todos os temas</b><span>90 questões embaralhadas</span></span></button>
+      <button class="mbtn" onclick="codigos()"><span class="ic i-codigos">📘</span><span class="tx"><b>Códigos do professor</b><span>resumo de todos os códigos dos slides</span></span></button>
+    </div>
+  </div>`;
+}
+
+function codigos(){
+  mode='codigos'; cat=null;
+  var labels={pilha:'Pilha (LIFO)',fila:'Fila (FIFO)',lista:'Listas encadeadas'};
+  var order=['pilha','fila','lista'];
+  var html='<div class="card codes-wrap">';
+  html+='<div class="codes-head"><h1>📘 Códigos do professor</h1></div>';
+  html+='<p class="lead">Resumo de todos os códigos que o professor passou nos slides. Use como consulta rápida antes do teste de mesa.</p>';
+  order.forEach(function(k){
+    if(!CODES[k]) return;
+    html+='<div class="cat-title '+k+'"><span class="dot"></span>'+labels[k]+'</div>';
+    html+=CODES[k].snippets.map(function(sn){
+      return '<div class="codebox"><div class="ch">'+escapeHtml(sn.h)+'</div><pre>'+escapeHtml(sn.c)+'</pre></div>';
+    }).join('');
+  });
+  html+='</div>';
+  app.innerHTML=html;
+  dock.innerHTML='<div class="inner"><button class="btn btn-ghost btn-back" onclick="menu()">↩ Menu</button><button class="btn btn-primary" onclick="window.scrollTo({top:0,behavior:\'smooth\'})">↑ Topo</button></div>';
+  window.scrollTo(0,0);
+}
+function start(c){
+  cat=c; idx=0; score=0; wrong=[]; mode='quiz';
+  if(c==='todos'){
+    let all=[]; ['pilha','fila','lista'].forEach(k=>BANKS[k].forEach(q=>all.push(prep(q,k))));
+    list=shuffle(all);
+  } else {
+    list=shuffle(BANKS[c]).map(q=>prep(q,c));
+  }
+  render();
+}
+function catName(c){return c==='todos'?'Todos os temas':LABELS[c];}
+
+function escapeHtml(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function codeHTML(q){
+  if(!showCode || !CODES[q._cat]) return '';
+  return CODES[q._cat].snippets.map(s=>`<div class="codebox"><div class="ch">${s.h}</div><pre>${escapeHtml(s.c)}</pre></div>`).join('');
+}
+
+function render(){
+  answered=false;
+  const q=list[idx];
+  const pct=Math.round((idx/list.length)*100);
+  app.innerHTML=`
+  <header>
+    <div class="title">Quiz <b>${catName(cat)}</b></div>
+    <div class="score">✔ ${score} / ${list.length}</div>
+  </header>
+  <div class="bar"><i style="width:${pct}%"></i></div>
+  <div class="card">
+    <div class="qnum">Questão ${idx+1} de ${list.length}<span class="tag t-${q._cat}">${LABELS[q._cat]}</span></div>
+    <div class="q">${q.q}</div>
+    <div class="opts" id="opts">${q.o.map((op,i)=>`<button class="opt" data-i="${i}" onclick="answer(${i})"><span class="k">${String.fromCharCode(65+i)}</span><span>${op}</span></button>`).join('')}</div>
+    <div class="fb" id="fb">
+      <div class="exp"><div class="lab">Por quê</div><p id="exp"></p></div>
+      <div class="mac"><div class="lab">Macete</div><p id="mac"></p></div>
+    </div>
+    <div class="toggle" onclick="toggleCode()">${showCode?'▾ Esconder':'▸ Mostrar'} código do professor (${LABELS[q._cat]})</div>
+    <div id="codewrap">${codeHTML(q)}</div>
+  </div>`;
+  renderDock();
+  window.scrollTo({top:0,behavior:'instant'});
+}
+
+function renderDock(){
+  dock.innerHTML=`<div class="inner">
+    <button class="btn btn-ghost btn-back" onclick="menu()">↩ Menu</button>
+    <button class="btn btn-primary" id="next" ${answered?'':'disabled style="opacity:.45;cursor:default"'} onclick="next()">${idx===list.length-1?'Ver resultado':'Próxima'} →<span class="kbd">Enter</span></button>
+  </div>`;
+}
+
+function toggleCode(){ showCode=!showCode; const wasA=answered, q=list[idx];
+  // re-render preserving answered state
+  const sel = wasA ? [...document.querySelectorAll('.opt')].findIndex(o=>o.classList.contains('wrong')) : -1;
+  render();
+  if(wasA){ applyAnswered(); }
+}
+
+let lastPicked=-1;
+function answer(i){
+  if(answered) return;
+  answered=true; lastPicked=i;
+  const q=list[idx];
+  const opts=document.querySelectorAll('.opt');
+  opts.forEach(b=>b.disabled=true);
+  if(i===q.a){ score++; opts[i].classList.add('right'); }
+  else{ opts[i].classList.add('wrong'); opts[q.a].classList.add('right'); wrong.push(q); }
+  document.getElementById('exp').textContent=q.e;
+  document.getElementById('mac').textContent=q.m;
+  document.getElementById('fb').classList.add('show');
+  document.querySelector('.score').textContent='✔ '+score+' / '+list.length;
+  renderDock();
+}
+function applyAnswered(){
+  const q=list[idx]; const opts=document.querySelectorAll('.opt');
+  opts.forEach(b=>b.disabled=true);
+  if(lastPicked===q.a){ opts[q.a].classList.add('right'); }
+  else { if(lastPicked>=0) opts[lastPicked].classList.add('wrong'); opts[q.a].classList.add('right'); }
+  document.getElementById('exp').textContent=q.e;
+  document.getElementById('mac').textContent=q.m;
+  document.getElementById('fb').classList.add('show');
+  answered=true; renderDock();
+}
+
+function next(){ if(!answered) return; if(idx<list.length-1){ idx++; render(); } else { result(); } }
+
+function result(){
+  mode='result'; dock.innerHTML='';
+  const pct=Math.round((score/list.length)*100);
+  let msg = pct>=90?'Excelente! Você manda bem!' : pct>=70?'Muito bom! Quase lá.' : pct>=50?'Bom começo, revise os erros.' : 'Bora revisar os códigos e tentar de novo!';
+  let rev = wrong.length? '<div class="review"><div class="qnum">Revisão dos erros</div>'+wrong.map(q=>`<div class="rev-item"><div class="qq">${q.q}<span class="tag t-${q._cat}">${LABELS[q._cat]}</span></div><div class="gg">✔ Correta: ${q.o[q.a]}</div><div class="ee"><b>Por quê:</b> ${q.e}<br><b>Macete:</b> ${q.m}</div></div>`).join('')+'</div>' : '<p class="lead center" style="color:var(--cyan)">Você não errou nenhuma! 🎉</p>';
+  app.innerHTML=`
+  <div class="card center">
+    <div class="qnum">${catName(cat)} · resultado</div>
+    <div class="big">${score}/${list.length}</div>
+    <div class="pill-row"><span class="pill" style="color:var(--cyan)">${pct}% de acerto</span><span class="pill muted">${wrong.length} erro(s)</span></div>
+    <p class="lead">${msg}</p>
+  </div>
+  ${rev}
+  <div class="row">
+    <button class="btn btn-ghost" onclick="menu()">↩ Menu</button>
+    <button class="btn btn-primary" onclick="start(cat)">↺ Refazer</button>
+  </div>`;
+  window.scrollTo(0,0);
+}
+
+// Atalhos de teclado
+document.addEventListener('keydown',function(ev){
+  if(mode!=='quiz') return;
+  if((ev.key==='Enter'||ev.key==='ArrowRight') && answered){ ev.preventDefault(); next(); return; }
+  if(!answered){
+    let n=-1;
+    if(ev.key>='1'&&ev.key<='4') n=parseInt(ev.key)-1;
+    const up=ev.key.toUpperCase();
+    if(up>='A'&&up<='D') n=up.charCodeAt(0)-65;
+    const q=list[idx];
+    if(n>=0 && n<q.o.length){ ev.preventDefault(); answer(n); }
+  }
+});
+
+menu();
+
+</script>
+<!-- Code injected by live-server -->
+<script>
+	// <![CDATA[  <-- For SVG support
+	if ('WebSocket' in window) {
+		(function () {
+			function refreshCSS() {
+				var sheets = [].slice.call(document.getElementsByTagName("link"));
+				var head = document.getElementsByTagName("head")[0];
+				for (var i = 0; i < sheets.length; ++i) {
+					var elem = sheets[i];
+					var parent = elem.parentElement || head;
+					parent.removeChild(elem);
+					var rel = elem.rel;
+					if (elem.href && typeof rel != "string" || rel.length == 0 || rel.toLowerCase() == "stylesheet") {
+						var url = elem.href.replace(/(&|\?)_cacheOverride=\d+/, '');
+						elem.href = url + (url.indexOf('?') >= 0 ? '&' : '?') + '_cacheOverride=' + (new Date().valueOf());
+					}
+					parent.appendChild(elem);
+				}
+			}
+			var protocol = window.location.protocol === 'http:' ? 'ws://' : 'wss://';
+			var address = protocol + window.location.host + window.location.pathname + '/ws';
+			var socket = new WebSocket(address);
+			socket.onmessage = function (msg) {
+				if (msg.data == 'reload') window.location.reload();
+				else if (msg.data == 'refreshcss') refreshCSS();
+			};
+			if (sessionStorage && !sessionStorage.getItem('IsThisFirstTime_Log_From_LiveServer')) {
+				console.log('Live reload enabled.');
+				sessionStorage.setItem('IsThisFirstTime_Log_From_LiveServer', true);
+			}
+		})();
+	}
+	else {
+		console.error('Upgrade your browser. This Browser is NOT supported WebSocket for Live-Reloading.');
+	}
+	// ]]>
+</script>
+<!-- Code injected by live-server -->
+<script>
+	// <![CDATA[  <-- For SVG support
+	if ('WebSocket' in window) {
+		(function () {
+			function refreshCSS() {
+				var sheets = [].slice.call(document.getElementsByTagName("link"));
+				var head = document.getElementsByTagName("head")[0];
+				for (var i = 0; i < sheets.length; ++i) {
+					var elem = sheets[i];
+					var parent = elem.parentElement || head;
+					parent.removeChild(elem);
+					var rel = elem.rel;
+					if (elem.href && typeof rel != "string" || rel.length == 0 || rel.toLowerCase() == "stylesheet") {
+						var url = elem.href.replace(/(&|\?)_cacheOverride=\d+/, '');
+						elem.href = url + (url.indexOf('?') >= 0 ? '&' : '?') + '_cacheOverride=' + (new Date().valueOf());
+					}
+					parent.appendChild(elem);
+				}
+			}
+			var protocol = window.location.protocol === 'http:' ? 'ws://' : 'wss://';
+			var address = protocol + window.location.host + window.location.pathname + '/ws';
+			var socket = new WebSocket(address);
+			socket.onmessage = function (msg) {
+				if (msg.data == 'reload') window.location.reload();
+				else if (msg.data == 'refreshcss') refreshCSS();
+			};
+			if (sessionStorage && !sessionStorage.getItem('IsThisFirstTime_Log_From_LiveServer')) {
+				console.log('Live reload enabled.');
+				sessionStorage.setItem('IsThisFirstTime_Log_From_LiveServer', true);
+			}
+		})();
+	}
+	else {
+		console.error('Upgrade your browser. This Browser is NOT supported WebSocket for Live-Reloading.');
+	}
+	// ]]>
+</script>
+</body>
+</html>
